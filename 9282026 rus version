@@ -1,0 +1,172 @@
+import tkinter as tk
+from tkinter import messagebox
+
+
+class PixelCastleGame:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Темное фэнтези квест: Путь Левой Руки")
+        self.root.geometry("580x680")
+        self.root.configure(bg="#0c0d12")
+
+        # Верхний баннер-заголовок
+        tk.Label(root, text="~ ЗАМОК КАТАСТРОФ ~", font=("Courier New", 14, "bold"), fg="#8b0000", bg="#0c0d12").pack(
+            pady=10)
+
+        # 2D Экран-холст для пиксельной графики
+        self.canvas = tk.Canvas(root, width=480, height=250, bg="#13151f", highlightthickness=1,
+                                highlightbackground="#2c3e50")
+        self.canvas.pack(pady=10)
+
+        # Текстовое поле для истории
+        self.story_label = tk.Label(root, text="", font=("Courier New", 11), fg="#b2bec3", bg="#0c0d12", wraplength=500,
+                                    justify="center", height=6)
+        self.story_label.pack(pady=10)
+
+        # Панель для кнопок в самом низу
+        self.btn_frame = tk.Frame(root, bg="#0c0d12")
+        self.btn_frame.pack(side=tk.BOTTOM, pady=25)
+
+        # Создаем три выделенные кнопки для динамического переключения выбора
+        self.buttons = []
+        for i in range(3):
+            btn = tk.Button(self.btn_frame, text="", font=("Courier New", 10, "bold"), width=28, bg="#2d3436",
+                            fg="#dfe6e9")
+            self.buttons.append(btn)
+
+        # Запускаем начальную сцену у двух дверей
+        self.goto_twin_doors()
+
+    def reset_screen(self):
+        """Очищает старые линии холста и скрывает кнопки управления."""
+        self.canvas.delete("all")
+        for btn in self.buttons:
+            btn.pack_forget()
+
+    def draw_pixel_door(self, x, y, w, h, label, face_expr, face_color):
+        """Рисует готическую каменную дверь на холсте."""
+        self.canvas.create_rectangle(x - 4, y - 20, x + w + 4, y + h, fill="#2c3e50", outline="#111")
+        self.canvas.create_rectangle(x, y, x + w, y + h, fill="#5c3d2e", outline="#3d2b1f", width=2)
+        self.canvas.create_line(x, y + 25, x + w - 8, y + 25, fill="#1e272e", width=4)
+        self.canvas.create_line(x, y + h - 25, x + w - 8, y + h - 25, fill="#1e272e", width=4)
+        self.canvas.create_oval(x + w - 16, y + h // 2 - 4, x + w - 4, y + h // 2 + 6, outline="#d2dae2", width=2)
+        if face_expr:
+            self.canvas.create_oval(x + w // 2 - 18, y - 22, x + w // 2 + 18, y + 4, fill=face_color, outline="#111")
+            self.canvas.create_text(x + w // 2, y - 8, text=face_expr, fill="#000", font=("Arial", 8, "bold"))
+        self.canvas.create_text(x + w // 2, y + h // 2, text=label, fill="#f1c40f", font=("Courier New", 8, "bold"))
+
+    def draw_image_scenery(self):
+        """Рисует фоновую каменную стену и свечи."""
+        for y in range(25, 250, 35):
+            self.canvas.create_line(0, y, 480, y, fill="#1a1c24", width=1)
+        self.canvas.create_rectangle(220, 20, 260, 250, fill="#34495e", outline="#111")
+        self.canvas.create_rectangle(215, 5, 265, 30, fill="#000", outline="#7f8c8d")
+
+        # Ручной список координат свечей во избежание сбоев форматирования
+        candle_coords = [60, 210, 360]
+        for cx in candle_coords:
+            self.canvas.create_rectangle(cx, 45, cx + 5, 55, fill="#d63031", outline="")
+            self.canvas.create_oval(cx + 1, 41, cx + 4, 44, fill="#ff9f43", outline="")
+
+    # ==========================================================================
+    # ЭТАП 1: ПЕРВАЯ ФАЗА ДВЕРЕЙ (2 варианта)
+    # ==========================================================================
+    def goto_twin_doors(self):
+        self.reset_screen()
+        self.draw_image_scenery()
+
+        self.draw_pixel_door(40, 70, 110, 150, "ЛЕВЫЕ\nВОРОТА", " (o.o) \n --v-- ", "#7f8c8d")
+        self.draw_pixel_door(330, 70, 110, 150, "ПРАВЫЕ\nВОРОТА", " (e.e) \n --^-- ", "#636e72")
+
+        self.story_label.config(
+            text="Вы спускаетесь в катакомбы замка. Ваш факел освещает два массивных каменных проема с плачущими каменными лицами. Какую дверь вы осмелитесь открыть?")
+        for i in range(2):
+            self.buttons[i].pack(pady=4)
+
+        self.buttons[0].config(text="Войти в Левую Дверь", command=self.goto_door_phase_2)
+        self.buttons[1].config(text="Войти в Правую Дверь", command=lambda: self.trigger_ending(0))
+
+    # ==========================================================================
+    # ЭТАП 2: ВТОРАЯ ФАЗА ДВЕРЕЙ (2 варианта - Дверь А идет дальше, Дверь Б - вода)
+    # ==========================================================================
+    def goto_door_phase_2(self):
+        messagebox.showinfo("Путь в подземелье",
+                            "Ухмыляющиеся левые ворота открываются! Вы скользите вниз по темному кирпичному желобу в глубокие камеры...")
+        self.reset_screen()
+
+        self.draw_pixel_door(50, 70, 110, 150, "ДВЕРЬ А", "", "")
+        self.draw_pixel_door(320, 70, 110, 150, "ДВЕРЬ Б", "", "")
+
+        self.story_label.config(
+            text="Вы благополучно оказываетесь внутри нижнего коридора. Впереди вас ждет второе испытание — две таинственные железные двери, преграждающие путь. Выберите свой маршрут:")
+        for i in range(2):
+            self.buttons[i].pack(pady=4)
+
+        self.buttons[0].config(text="Вскрыть Дверь А (Загадка)", command=self.goto_door_phase_3)
+        self.buttons[1].config(text="Вскрыть Дверь Б (Затопление)", command=lambda: self.trigger_ending(4))
+
+    # ==========================================================================
+    # ЭТАП 3: ТРЕТЬЯ ФАЗА ДВЕРЕЙ (3 варианта)
+    # ==========================================================================
+    def goto_door_phase_3(self):
+        self.reset_screen()
+
+        # Отрисовка 3 сундуков сокровища на постаментах
+        for x_pos, box_title in [(50, "БРОНЗА"), (200, "ЗОЛОТО"), (350, "БЕЗДНА")]:
+            self.canvas.create_rectangle(x_pos + 10, 130, x_pos + 50, 180, fill="#7f8c8d", outline="#111")
+            self.canvas.create_rectangle(x_pos, 95, x_pos + 60, 130, fill="#cd6133", outline="#111", width=2)
+            self.canvas.create_rectangle(x_pos, 95, x_pos + 60, 108, fill="#b33925", outline="#111")
+            self.canvas.create_oval(x_pos + 26, 112, x_pos + 34, 120, fill="#f1c40f")
+            self.canvas.create_text(x_pos + 30, 155, text=box_title, fill="#fff", font=("Courier New", 8, "bold"))
+
+        self.story_label.config(
+            text="На постаментах стоят три уникальных укрепленных контейнера с сокровищами. Открытие какого-либо из них определит вашу судьбу:")
+        for btn in self.buttons:
+            btn.pack(pady=4)
+
+        self.buttons[0].config(text="Открыть Бронзовый Контейнер", command=lambda: self.trigger_ending(1))
+        self.buttons[1].config(text="Открыть Золотой Контейнер", command=lambda: self.trigger_ending(2))
+        self.buttons[2].config(text="Открыть Контейнер Бездна", command=lambda: self.trigger_ending(3))
+
+    # ==========================================================================
+    # ИСХОДЫ: 5 УНИКАЛЬНЫХ ФИНАЛОВ
+    # ==========================================================================
+    def trigger_ending(self, ending_id):
+        self.reset_screen()
+
+        if ending_id == 0:
+            self.canvas.create_rectangle(20, 20, 460, 230, fill="#2c3e50")
+            self.canvas.create_line(40, 200, 440, 50, fill="#7f8c8d", width=6)
+            msg = "КОНЦОВКА 0: Обрушившаяся Лестница\n\nВы перешагиваете через хмурые правые ворота. Мгновенно древняя каменная лестница превращается в порошок под тяжестью ваших доспехов, отправляя вас в бесконечное падение в темную бездну."
+        elif ending_id == 1:
+            self.canvas.create_rectangle(40, 40, 440, 210, fill="#581845", outline="#c0392b", width=3)
+            self.canvas.create_text(240, 120, text="👹\nЗАСАДА", fill="#fff", font=("Arial", 16, "bold"),
+                                    justify="center")
+            msg = "КОНЦОВКА 1: Растерзан Пещерным Змеем\n\nВы открываете Бронзовый Контейнер, и из него вырывается ядовитый газ! Гигантский пещерный змей выползает из сточной ямы под комнатой и наносит стремительный удар до того, как вы успеваете замахнуться мечом."
+        elif ending_id == 2:
+            self.canvas.create_rectangle(180, 80, 300, 170, fill="#f1c40f", outline="#d35400", width=4)
+            self.canvas.create_text(240, 125, text="🏆\nПОБЕДА", fill="#000", font=("Arial", 14, "bold"),
+                                    justify="center")
+            msg = "КОНЦОВКА 2: Легендарный Побег\n\nЗолотой Контейнер безопасно открывается! Внутри лежит Корона Королей. Скрытый кирпичный механизм заставляет стену сдвинуться, открывая секретный проход, ведущий прямо на солнечный свет."
+        elif ending_id == 3:
+            abyss_offsets = [10, 30, 50]
+            for offset in abyss_offsets:
+                self.canvas.create_oval(130 + offset, 70, 210 + offset, 150, outline="#8e44ad", width=4)
+            msg = "КОНЦОВКА 3: Поглощен Змеиной Бездной\n\nЗамок Контейнера Бездны полностью раскалывается! Щупальца фиолетовой космической энергии устремляются наружу, обрушивая каменный пол и поглощая вашего рыцаря в бесконечную бурлящую Змеиную Бездну."
+        else:
+            self.canvas.create_rectangle(10, 120, 470, 240, fill="#2980b9", outline="")
+            self.canvas.create_text(240, 170, text="💧\nЗАТОПЛЕНИЕ", fill="#fff", font=("Arial", 16, "bold"))
+            msg = "КОНЦОВКА 4: Затопленный Шлюз\n\nВы открываете Дверь Б! В тот же миг мощный поток воды прорывает раму, заполняя герметичную камеру. Запертый в тяжелых латах, вы тонете в глубинах подземелья."
+
+        messagebox.showinfo("Итог приключения", msg)
+
+        if messagebox.askyesno("Сыграть снова?", "Вернуться к начальным дверям и изменить судьбу?"):
+            self.goto_twin_doors()
+        else:
+            self.root.quit()
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = PixelCastleGame(root)
+    root.mainloop()
