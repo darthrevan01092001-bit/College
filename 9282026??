@@ -1,0 +1,176 @@
+import tkinter as tk
+from tkinter import messagebox
+
+
+class PixelCastleGame:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Dark Fantasy Quest: The Forgotten Temple")
+        self.root.geometry("580x680")
+        self.root.configure(bg="#0c0d12")
+
+        # Top Title Banner
+        tk.Label(root, text="--- THE FORGOTTEN TEMPLE ---",
+                 font=("Courier New", 14, "bold"), fg="#8b0000", bg="#0c0d12").pack(pady=10)
+
+        # 2D Canvas Screen Layout (Draws the pixel graphics)
+        self.canvas = tk.Canvas(root, width=480, height=250, bg="#13151f", highlightthickness=1,
+                                highlightbackground="#2c3e50")
+        self.canvas.pack(pady=10)
+
+        # Narrative Story Text Box Frame (Middle)
+        self.story_label = tk.Label(root, text="", font=("Courier New", 11), fg="#b2bec3", bg="#0c0d12",
+                                    wraplength=500, justify="center", height=6)
+        self.story_label.pack(pady=10)
+
+        # Action Buttons Area (Bottom)
+        self.btn_frame = tk.Frame(root, bg="#0c0d12")
+        self.btn_frame.pack(side=tk.BOTTOM, pady=25)
+
+        # Create dedicated buttons to handle choices dynamically without errors
+        self.buttons = []
+        for i in range(3):
+            btn = tk.Button(self.btn_frame, text="", font=("Courier New", 10, "bold"), width=28, bg="#2d3436",
+                            fg="#dfe6e9")
+            self.buttons.append(btn)
+
+        # Spark the initial loop at the twin pathways scene
+        self.intro_scene()
+
+    def reset_ui(self):
+        """Clears old canvas drawings and hides control buttons to repaint the screen."""
+        self.canvas.delete("all")
+        for btn in self.buttons:
+            btn.pack_forget()
+
+    def draw_pixel_door(self, x, y, w, h, label, face_expr, face_color):
+        """Draws a gothic stone doorway matching your image properties."""
+        self.canvas.create_rectangle(x - 4, y - 20, x + w + 4, y + h, fill="#2c3e50", outline="#111")
+        self.canvas.create_rectangle(x, y, x + w, y + h, fill="#5c3d2e", outline="#3d2b1f", width=2)
+        self.canvas.create_line(x, y + 25, x + w - 8, y + 25, fill="#1e272e", width=4)
+        self.canvas.create_line(x, y + h - 25, x + w - 8, y + h - 25, fill="#1e272e", width=4)
+        self.canvas.create_oval(x + w - 16, y + h // 2 - 4, x + w - 4, y + h // 2 + 6, outline="#d2dae2", width=2)
+        if face_expr:
+            self.canvas.create_oval(x + w // 2 - 18, y - 22, x + w // 2 + 18, y + 4, fill=face_color, outline="#111")
+            self.canvas.create_text(x + w // 2, y - 8, text=face_expr, fill="#000", font=("Arial", 8, "bold"))
+        self.canvas.create_text(x + w // 2, y + h // 2, text=label, fill="#f1c40f", font=("Courier New", 8, "bold"))
+
+    def draw_image_scenery(self):
+        """Draws the ambient structural separator wall and candles directly from your reference file."""
+        for y in range(25, 250, 35):
+            self.canvas.create_line(0, y, 480, y, fill="#1a1c24", width=1)
+        self.canvas.create_rectangle(220, 20, 260, 250, fill="#34495e", outline="#111")
+        self.canvas.create_rectangle(215, 5, 265, 30, fill="#000", outline="#7f8c8d")
+
+        # Candles drawn directly without loops to prevent empty bracket errors
+        self.canvas.create_rectangle(60, 45, 65, 55, fill="#d63031", outline="")
+        self.canvas.create_oval(61, 41, 64, 44, fill="#ff9f43", outline="")
+        self.canvas.create_rectangle(210, 45, 215, 55, fill="#d63031", outline="")
+        self.canvas.create_oval(211, 41, 214, 44, fill="#ff9f43", outline="")
+        self.canvas.create_rectangle(360, 45, 365, 55, fill="#d63031", outline="")
+        self.canvas.create_oval(361, 41, 364, 44, fill="#ff9f43", outline="")
+
+    # ==========================================
+    # PHASE 1: CHOOSE PATHWAY (2 Options)
+    # ==========================================
+    def intro_scene(self):
+        self.reset_ui()
+        self.draw_image_scenery()
+
+        self.draw_pixel_door(40, 70, 110, 150, "LEFT PATH", " (o.o) \n --v-- ", "#7f8c8d")
+        self.draw_pixel_door(330, 70, 110, 150, "RIGHT PATH", " (e.e) \n --^-- ", "#636e72")
+
+        self.story_label.config(
+            text="You stand at the entrance of an ancient, moss-covered temple. Heavy rain pours around you. Your torch light flickers.\n\nIn front of you, there are two large stone pathways. Where do you want to go?"
+        )
+        for i in range(2):
+            self.buttons[i].pack(pady=4)
+
+        self.buttons[0].config(text="1. Take Left Dark Tunnel", command=self.goto_door_phase_2)
+        self.buttons[1].config(text="2. Take Right Winding Staircase", command=lambda: self.trigger_ending(0))
+
+    # ==========================================
+    # PHASE 2: MID-VAULT ROOM (2 Options)
+    # ==========================================
+    def goto_door_phase_2(self):
+        messagebox.showinfo("Dungeon Path",
+                            "You walk into the left dark tunnel. The air feels freezing cold! Suddenly, a massive iron gate slams shut behind you!")
+        self.reset_ui()
+
+        self.draw_pixel_door(50, 70, 110, 150, "DOOR A", "", "")
+        self.draw_pixel_door(320, 70, 110, 150, "DOOR B", "", "")
+
+        self.story_label.config(
+            text="A glowing statue appears and speaks: 'Answer my riddle to pass.'\n\n'What has keys but opens no locks, and space but no room?' Choose your door strategy:"
+        )
+        for i in range(2):
+            self.buttons[i].pack(pady=4)
+
+        self.buttons[0].config(text="Breach Door A (Riddle Check)", command=self.goto_door_phase_3)
+        self.buttons[1].config(text="Breach Door B (Drown Path)", command=lambda: self.trigger_ending(4))
+
+    # ==========================================
+    # PHASE 3: FINAL HOARD (3 Options)
+    # ==========================================
+    def goto_door_phase_3(self):
+        self.reset_ui()
+
+        # Draw 3 pixel chests sitting on brick bases
+        for x_pos, box_title in [(50, "BRONZE"), (200, "GOLDEN"), (350, "VOID")]:
+            self.canvas.create_rectangle(x_pos + 10, 130, x_pos + 50, 180, fill="#7f8c8d", outline="#111")
+            self.canvas.create_rectangle(x_pos, 95, x_pos + 60, 130, fill="#cd6133", outline="#111", width=2)
+            self.canvas.create_rectangle(x_pos, 95, x_pos + 60, 108, fill="#b33925", outline="#111")
+            self.canvas.create_oval(x_pos + 26, 112, x_pos + 34, 120, fill="#f1c40f")
+            self.canvas.create_text(x_pos + 30, 155, text=box_title, fill="#fff", font=("Courier New", 8, "bold"))
+
+        self.story_label.config(
+            text="🛡️ CORRECT! The riddle wall shifts open into the Inner Vault Sanctum. Three unique, reinforced treasure containers rest on pedestals. Choose one to open:")
+
+        for btn in self.buttons:
+            btn.pack(pady=4)
+
+        self.buttons[0].config(text="Unlock Bronze Container", command=lambda: self.trigger_ending(1))
+        self.buttons[1].config(text="Unlock Golden Container", command=lambda: self.trigger_ending(2))
+        self.buttons[2].config(text="Unlock Void Container", command=lambda: self.trigger_ending(3))
+
+    # ==========================================
+    # RESOLUTIONS: THE 5 TOTAL ENDINGS
+    # ==========================================
+    def trigger_ending(self, ending_id):
+        self.reset_ui()
+
+        if ending_id == 0:
+            self.canvas.create_rectangle(20, 20, 460, 230, fill="#2c3e50")
+            self.canvas.create_line(40, 200, 440, 50, fill="#7f8c8d", width=6)
+            msg = "ENDING 0: The Collapsed Staircase (SUDDEN DEATH DEFEAT)\n\nYou descend the spiral staircase deep into the earth. Suddenly, the ancient stone staircase crumbles into powder beneath your weight, sending you falling endlessly into the darkness below."
+        elif ending_id == 1:
+            self.canvas.create_rectangle(40, 40, 440, 210, fill="#581845", outline="#c0392b", width=3)
+            self.canvas.create_text(240, 120, text="👹\nAMBUSHED", fill="#fff", font=("Arial", 16, "bold"),
+                                    justify="center")
+            msg = "ENDING 1: Slain by the Cave Serpent (DEFEAT)\n\nYou open the Bronze Container, releasing a toxic gas! A giant cave serpent slithers from a floor drain pit and strikes before you can swing your sword."
+        elif ending_id == 2:
+            self.canvas.create_rectangle(180, 80, 300, 170, fill="#f1c40f", outline="#d35400", width=4)
+            self.canvas.create_text(240, 125, text="🏆\nVICTORY", fill="#000", font=("Arial", 14, "bold"),
+                                    justify="center")
+            msg = "ENDING 2: The Legendary Escape (ULTIMATE VICTORY)\n\nThe Golden Container pops open safely! Inside is the Crown of Kings. A secret brick mechanism opens a sliding wall path leading safely out into daylight."
+        elif ending_id == 3:
+            self.canvas.create_oval(130, 70, 210, 150, outline="#8e44ad", width=4)
+            self.canvas.create_oval(230, 70, 310, 150, outline="#8e44ad", width=4)
+            msg = "ENDING 3: Engulfed by the Serpent Abyss (DEFEAT)\n\nThe Void Container dissolves into shadow lines! Tendrils of cosmic energy surge out, collapsing the brick floor and engulfing your Knight into the endless Serpent Abyss."
+        else:
+            self.canvas.create_rectangle(10, 120, 470, 240, fill="#2980b9", outline="")
+            self.canvas.create_text(240, 170, text="💧\nDROWNED", fill="#fff", font=("Arial", 16, "bold"))
+            msg = "ENDING 4: The Flooded Vault (SUDDEN WATER DEFEAT)\n\nYou fail the riddle and breach Door B! Instantly, a massive wall of pressurized sewer water bursts through the frame, rapidly filling the sealed chamber. Trapped in your heavy armor, you drown in the depths."
+
+        messagebox.showinfo("Dungeon Resolution", msg)
+
+        if messagebox.askyesno("Try Again?", "Do you want to play again?"):
+            self.intro_scene()
+        else:
+            self.root.quit()
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = PixelCastleGame(root)
+    root.mainloop()
