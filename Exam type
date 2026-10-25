@@ -1,0 +1,47 @@
+import random
+
+def run_quiz():
+    # 1. Load general questions and verify pool size
+    try:
+        with open("questions.txt", "r", encoding="utf-8") as q_file, open("answers.txt", "r", encoding="utf-8") as a_file:
+            gen_pool = [(q.strip(), a.strip()) for q, a in zip(q_file, a_file) if q.strip()]
+    except FileNotFoundError:
+        print("Error: Ensure both 'questions.txt' and 'answers.txt' exist!"); return
+
+    if len(gen_pool) < 80:
+        print(f"Error: Your files only have {len(gen_pool)} questions. Please add up to 80!"); return
+
+    # 2. Slice exactly 80 general questions and generate 20 math questions
+    quiz_pool = random.sample(gen_pool, 80)
+    ops = ['+', '-', '*', '/']
+    while len(quiz_pool) < 100:  # 80 general + 20 math = 100 total
+        num1, num2, op = random.randint(10, 99), random.randint(2, 9), random.choice(ops)
+        if op == '/':
+            num1 = random.randint(20, 99)
+            q_text = f"Math: Divide {num1} by {num2}. Round to 1 decimal place:"
+            ans_text = str(round(num1 / num2, 1))
+        else:
+            q_text = f"Math: What is {num1} {op} {num2}?:"
+            ans_text = str(eval(f"{num1}{op}{num2}"))
+        quiz_pool.append((q_text, ans_text))
+
+    # 3. Sample exactly 20 questions for the active session
+    quiz_session = random.sample(quiz_pool, 20)
+    score = 0
+    print("=== STARTING THE 20-QUESTION EXAM (Total: 100 Points) ===")
+
+    # 4. Main gameplay loop
+    for i, (question, correct_answer) in enumerate(quiz_session, 1):
+        print(f"\n[{i}/20] {question}")
+        user_answer = input("Your Answer: ").strip().replace(",", ".")
+
+        if user_answer.lower() == correct_answer.lower():
+            print("✨ Correct! (+5 points)")
+            score += 5
+        else:
+            print(f"❌ Wrong. The correct answer was: {correct_answer}")
+
+    print(f"\n=== QUIZ COMPLETE ===\nYour Final Score: {score} / 100 points")
+
+if __name__ == "__main__":
+    run_quiz()
