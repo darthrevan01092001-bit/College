@@ -1,0 +1,213 @@
+import os
+import random
+
+
+def run_batch_billing():
+    items_file = "items.txt"
+    prices_file = "prices.txt"
+
+    if not os.path.exists(items_file) or not os.path.exists(prices_file):
+        print("Error: Ensure both 'items.txt' and 'prices.txt' exist!"); return
+
+    database = {}
+
+    # 1. Parse Data Streams into Memory
+    with open(items_file, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                parts = line.strip().rsplit(maxsplit=1)
+                if len(parts) == 2:
+                    database[parts[1].strip()] = {"name": parts[0]}
+
+    with open(prices_file, "r", encoding="utf-8") as f:
+        for line in f:
+            if "=" in line:
+                serial, price_str = line.split("=")
+                serial = serial.strip()
+                if serial in database:
+                    database[serial]["price"] = float(price_str.strip())
+
+    # 2. Get User Age Once
+    print("\n=== BATCH PROCESSING CHECKOUT INITIALIZED ===")
+    try:
+        user_age = int(input("Enter buyer age: "))
+    except ValueError:
+        print("❌ System Exception: Invalid numeric entry."); return
+
+    # 3. Dynamic Environmental Variables
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    rolled_day = random.choice(days)
+    discount_rate = 0.20 if rolled_day == "Friday" else (0.15 if rolled_day in ["Saturday", "Sunday"] else 0.00)
+
+    # 4. Input Processing (Handles both "J6K K7L" and "J6K, K7L")
+    raw_input = input("Enter serial numbers (separated by spaces or commas): ")
+    # Replace all commas with spaces, then split into a clean list of clean strings
+    requested_serials = raw_input.replace(",", " ").split()
+
+    cart = []
+    
+    # 5. Process the Parsed Input List
+    for serial in requested_serials:
+        if serial not in database:
+            print(f"⚠️ Warning: Serial '{serial}' not found in registry. Skipping.")
+            continue
+
+        target = database[serial]
+        age_req = 18 if "cola" in target["name"] or "pepper" in target["name"] else 0
+
+        if user_age < age_req:
+            print(f"❌ Access Denied: {target['name'].upper()} requires age {age_req}+. Skipping.")
+            continue
+
+        cart.append((serial, target))
+
+    if not cart:
+        print("🛒 No valid items added. Transaction cancelled."); return
+
+    # 6. Combined Final Receipt Calculation
+    print(f"\n{'='*15} TRANSACTION RECEIPT {'='*15}")
+    print(f"Current Day Mode:     {rolled_day}")
+    print(f"Applied Promo Rate:   {discount_rate * 100:.0f}%")
+    print("-" * 49)
+
+    subtotal = 0.0
+    for serial, item in cart:
+        print(f"- {item['name'].title():<28} [{serial}] : ${item['price']:.2f}")
+        subtotal += item["price"]
+
+    discount_amount = subtotal * discount_rate
+    final_bill = subtotal - discount_amount
+
+    print("-" * 49)
+    print(f"Subtotal:             ${subtotal:.2f}")
+    print(f"Total Discount:      -${discount_amount:.2f}")
+    print(f"Final Account Bill:   ${final_bill:.2f}")
+    print(f"{'='*49}\n")
+
+
+if __name__ == "__main__":
+    run_batch_billing()
+
+
+
+
+
+
+
+
+
+Items: 
+
+coca cola  H1R
+pepsi      Kd1
+dr pepper  Ld1
+iphone 15 pro  A1X
+playstation 5  B2Y
+nintendo   C3Z
+mechanical keyboard  D4W
+wireless mouse  E5V
+gaming monitor  F6U
+noise cancelling headphones  G7T
+macbook air  H8S
+gaming laptop  I9R
+smart watch  J0Q
+bluetooth speaker  K1P
+television  L2O
+hdmi cable  M3N
+usb flash drive  N4M
+external hard drive  O5L
+graphics card  P6K
+power bank  Q7J
+ipad air  R8I
+charging station  S9H
+desk lamp  T0G
+ergonomic chair  U1F
+electric standing desk  V2E
+aaa batteries  W3D
+coffee maker  X4C
+air fryer  Y5B
+microwave oven  Z6A
+electric kettle  A7B
+smart light bulb  B8C
+robot vacuum  C9D
+water filter pitcher  D0E
+protein powder  E1F
+running shoes  F2G
+gym backpack  G3H
+water bottle  H4I
+yoga mat  I5J
+leather wallet  J6K
+winter jacket  K7L
+cotton t-shirt  L8M
+jeans denim  M9N
+sunglasses  N0O
+umbrella  P2Q
+ceramic coffee mug  Q3R
+notebook journal  R4S
+ballpoint pens pack  S5T
+aa batteries  T6U
+extended cord  U7V
+desk mouse pad  V8W
+
+
+
+
+
+
+
+
+
+
+Prices: 
+Ld1 = 10
+H1R = 23
+Kd1 = 2
+A1X = 999
+C3Z = 299
+B2Y = 499
+E5V = 25
+D4W = 85
+G7T = 349
+F6U = 249
+I9R = 1299
+H8S = 1099
+K1P = 59
+J0Q = 199
+M3N = 15
+L2O = 449
+O5L = 79
+N4M = 12
+Q7J = 35
+P6K = 599
+S9H = 45
+R8I = 599
+U1F = 189
+T0G = 29
+W3D = 8
+V2E = 320
+Y5B = 89
+X4C = 49
+A7B = 35
+Z6A = 110
+C9D = 220
+B8C = 18
+E1F = 40
+D0E = 24
+G3H = 45
+F2G = 120
+I5J = 20
+H4I = 18
+K7L = 150
+J6K = 35
+M9N = 55
+L8M = 15
+P2Q = 12
+N0O = 85
+R4S = 10
+Q3R = 14
+T6U = 9
+S5T = 5
+V8W = 15
+U7V = 22
+
+
