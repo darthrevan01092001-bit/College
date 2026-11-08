@@ -1,0 +1,74 @@
+import os
+import heapq
+
+
+def run_metro_navigator():
+    map_file = "metro_map.txt"
+    if not os.path.exists(map_file):
+        print("Error: 'metro_map.txt' not found!"); return
+
+    graph = {}
+    with open(map_file, "r", encoding="utf-8") as f:
+        for line in f:
+            if ":" not in line:
+                continue
+            label, body = line.strip().split(":", 1)
+            if label.startswith("Transfers"):
+                for pair in body.split(","):
+                    left, mins = pair.strip().split("(")
+                    a, b = left.split("-")
+                    mins = int(mins.replace(")", ""))
+                    graph.setdefault(a.strip().lower(), list()).append((b.strip().lower(), mins, b.strip(), "Walk Transfer"))
+                    graph.setdefault(b.strip().lower(), list()).append((a.strip().lower(), mins, a.strip(), "Walk Transfer"))
+            else:
+                parts = body.replace("(", "|").replace(")", "|").split("|")
+                for i in range(0, len(parts) - 2, 2):
+                    a, mins, b = parts[i].strip(), int(parts[i + 1]), parts[i + 2].strip()
+                    graph.setdefault(a.lower(), list()).append((b.lower(), mins, b, label))
+                    graph.setdefault(b.lower(), list()).append((a.lower(), mins, a, label))
+
+    start = input("Departure station: ").strip().lower()
+    goal = input("Destination station: ").strip().lower()
+    if start not in graph or goal not in graph:
+        print("Error: Station not found."); return
+
+    pq, best = [(0, start, [(start.title(), "Start")])], {start: 0}
+    while pq:
+        mins, curr, path = heapq.heappop(pq)
+        if curr == goal:
+            lines_used = list()
+            for _, tag in path[1:]:
+                if tag != "Walk Transfer" and (not lines_used or lines_used[-1] != tag):
+                    lines_used.append(tag)
+            print(f"\nTime: {mins} min | Stations: {len(path)} | Lines: {' -> '.join(lines_used)}")
+            for st, tag in path:
+                print(f"  {st:<26} | {tag}")
+            return
+        for nxt, travel, proper, tag in graph[curr]:
+            if mins + travel < best.get(nxt, float("inf")):
+                best[nxt] = mins + travel
+                heapq.heappush(pq, (mins + travel, nxt, path + [(proper, tag)]))
+
+
+if __name__ == "__main__":
+    run_metro_navigator()
+
+
+
+Line 1 Sokolnicheskaya [Red]: Bulvar Rokossovskogo (3) Cherkizovskaya (2) Preobrazhenskaya Ploshchad (3) Sokolniki (2) Krasnoselskaya (2) Komsomolskaya (2) Krasnye Vorota (2) Chistye Prudy (2) Lubyanka (2) Okhotny Ryad (2) Biblioteka Imeni Lenina (2) Kropotkinskaya (2) Park Kultury (3) Frunzenskaya (2) Sportivnaya (3) Vorobyovy Gory (3) Universitet (3) Prospekt Vernadskogo (3) Yugo-Zapadnaya (3) Troparyovo (3) Rumyantsevo (2) Salaryevo (3) Filatov Lug (3) Prokshino (3) Olkhovaya (3) Kommunarka (3) Potapovo
+Line 2 Zamoskvoretskaya [Green]: Khovrino (3) Belomorskaya (2) Rechnoy Vokzal (3) Vodny Stadion (3) Voykovskaya (3) Sokol (2) Aeroport (3) Dinamo (3) Belorusskaya (3) Mayakovskaya (2) Tverskaya (2) Teatralnaya (3) Novokuznetskaya (3) Paveletskaya (3) Avtozavodskaya (3) Tekhnopark (3) Kolomenskaya (3) Kashirskaya (3) Kantemirovskaya (3) Tsaritsyno (3) Orekhovo (3) Domodedovskaya (3) Krasnogvardeyskaya (3) Alma-Atinskaya
+Line 3 Arbatsko-Pokrovskaya [Blue]: Pyatnitskoye Shosse (3) Mitino (2) Volokolamskaya (3) Myakinino (3) Strogino (5) Krylatskoye (3) Molodyozhnaya (3) Kuntsevskaya (3) Slavyansky Bulvar (3) Park Pobedy (4) Kievskaya (3) Smolenskaya (2) Arbatskaya (3) Ploshchad Revolyutsii (3) Kurskaya (4) Baumanskaya (3) Elektrozavodskaya (3) Semyonovskaya (3) Partizanskaya (3) Izmaylovskaya (3) Pervomayskaya (3) Shchelkovskaya
+Line 4 Filyovskaya [Light Blue]: Kuntsevskaya (3) Pionerskaya (2) Filyovsky Park (3) Bagrationovskaya (2) Fili (3) Kutuzovskaya (3) Studencheskaya (2) Kievskaya (3) Smolenskaya (2) Arbatskaya (2) Aleksandrovsky Sad
+Line 5 Koltsevaya [Brown]: Komsomolskaya (3) Kurskaya (3) Taganskaya (3) Paveletskaya (2) Dobryninskaya (2) Oktyabrskaya (3) Park Kultury (4) Kievskaya (6) Belorusskaya (3) Novoslobodskaya (3) Prospekt Mira (3) Komsomolskaya
+Line 6 Kaluzhsko-Rizhskaya [Orange]: Medvedkovo (3) Babushkinskaya (3) Sviblovo (2) Botanichesky Sad (3) VDNKh (3) Alekseyevskaya (3) Rizhskaya (3) Prospekt Mira (2) Sukharevskaya (2) Turgenevskaya (2) Kitay-Gorod (3) Tretyakovskaya (3) Oktyabrskaya (3) Shabolovskaya (3) Leninsky Prospekt (3) Akademicheskaya (3) Profsoyuznaya (2) Novye Cheryomushki (3) Kaluzhskaya (3) Belyayevo (3) Konkovo (3) Tyoply Stan (3) Yasenevo (3) Novoyasenevskaya
+Line 7 Tagansko-Krasnopresnenskaya [Purple]: Planernaya (3) Skhodnenskaya (3) Tushinskaya (3) Spartak (2) Shchukinskaya (3) Oktyabrskoye Pole (3) Polezhayevskaya (3) Begovaya (3) Ulitsa 1905 Goda (3) Barrikadnaya (2) Pushkinskaya (2) Kuznetsky Most (2) Kitay-Gorod (3) Taganskaya (3) Proletarskaya (3) Volgogradsky Prospekt (3) Tekstilshchiki (3) Kuzminki (3) Ryazansky Prospekt (3) Vykhino (3) Lermontovsky Prospekt (2) Zhulebino (3) Kotelniki
+Line 8 Kalininskaya [Yellow]: Novokosino (3) Novogireyevo (3) Perovo (3) Shosse Entuziastov (3) Aviamotornaya (3) Ploshchad Ilyicha (3) Marksistskaya (3) Tretyakovskaya
+Line 8A Solntsevskaya [Yellow]: Delovoy Tsentr (3) Park Pobedy (3) Minskaya (3) Lomonosovsky Prospekt (3) Ramenki (3) Michurinsky Prospekt (3) Ozyornaya (3) Govorovo (3) Solntsevo (3) Borovskoye Shosse (3) Novoperedelkino (3) Rasskazovka (4) Pykhtino (3) Aeroport Vnukovo
+Line 9 Serpukhovsko-Timiryazevskaya [Grey]: Altufyevo (3) Bibirevo (3) Otradnoye (3) Vladykino (3) Petrovsko-Razumovskaya (3) Timiryazevskaya (3) Dmitrovskaya (3) Savyolovskaya (3) Mendeleyevskaya (2) Tsvetnoy Bulvar (2) Chekhovskaya (2) Borovitskaya (3) Polyanka (2) Serpukhovskaya (3) Tulskaya (3) Nagatinskaya (3) Nagornaya (2) Nakhimovsky Prospekt (3) Sevastopolskaya (3) Chertanovskaya (3) Yuzhnaya (3) Prazhskaya (3) Ulitsa Akademika Yangelya (2) Annino (3) Bulvar Dmitriya Donskogo
+Line 10 Lyublinsko-Dmitrovskaya [Lime]: Fiztekh (3) Lianozovo (3) Yakhromskaya (3) Seligerskaya (3) Verkhniye Likhobory (3) Okruzhnaya (3) Petrovsko-Razumovskaya (3) Fonvizinskaya (3) Butyrskaya (3) Maryina Roshcha (3) Dostoyevskaya (3) Trubnaya (2) Sretensky Bulvar (3) Chkalovskaya (3) Rimskaya (3) Krestyanskaya Zastava (3) Dubrovka (3) Kozhukhovskaya (3) Pechatniki (3) Volzhskaya (3) Lyublino (3) Bratislavskaya (3) Maryino (3) Borisovo (3) Shipilovskaya (2) Zyablikovo
+Line 11 Bolshaya Koltsevaya [Turquoise]: Savyolovskaya (3) Maryina Roshcha (3) Rizhskaya (3) Sokolniki (3) Elektrozavodskaya (3) Lefortovo (3) Aviamotornaya (3) Nizhegorodskaya (3) Tekstilshchiki (3) Pechatniki (3) Nagatinsky Zaton (3) Klenovy Bulvar (3) Kashirskaya (3) Varshavskaya (3) Kakhovskaya (3) Zyuzino (3) Vorontsovskaya (3) Novatorskaya (3) Prospekt Vernadskogo (3) Michurinsky Prospekt (3) Aminyevskaya (3) Davydkovo (3) Kuntsevskaya (3) Terekhovo (3) Mnyovniki (3) Narodnoye Opolcheniye (3) Khoroshyovskaya (3) CSKA (3) Petrovsky Park (3) Savyolovskaya
+Line 12 Butovskaya [Blue-Grey]: Bittsevsky Park (3) Lesoparkovaya (4) Ulitsa Starokachalovskaya (3) Ulitsa Skobelevskaya (2) Bulvar Admirala Ushakova (2) Ulitsa Gorchakova (2) Buninskaya Alleya
+Line 14 MCC Ring [White-Red]: Okruzhnaya (3) Vladykino (3) Botanichesky Sad (3) Rostokino (3) Belokamennaya (3) Bulvar Rokossovskogo (3) Lokomotiv (3) Izmaylovo (3) Sokolinaya Gora (3) Shosse Entuziastov (3) Andronovka (3) Nizhegorodskaya (3) Novokhokhlovskaya (3) Ugreshskaya (3) Dubrovka (3) Avtozavodskaya (3) ZIL (3) Verkhniye Kotly (3) Krymskaya (3) Ploshchad Gagarina (3) Luzhniki (3) Kutuzovskaya (3) Delovoy Tsentr (3) Shelepikha (3) Khoroshyovo (3) Zorge (3) Panfilovskaya (3) Streshnevo (3) Baltiyskaya (3) Koptevo (3) Likhobory (3) Okruzhnaya
+Line 15 Nekrasovskaya [Pink]: Nizhegorodskaya (3) Stakhanovskaya (3) Okskaya (3) Yugo-Vostochnaya (3) Kosino (3) Ulitsa Dmitriyevskogo (3) Lukhmanovskaya (3) Nekrasovka
+Transfers [Walk]: Chistye Prudy-Turgenevskaya (3), Turgenevskaya-Sretensky Bulvar (3), Lubyanka-Kuznetsky Most (3), Okhotny Ryad-Teatralnaya (3), Teatralnaya-Ploshchad Revolyutsii (4), Biblioteka Imeni Lenina-Arbatskaya (3), Biblioteka Imeni Lenina-Aleksandrovsky Sad (4), Biblioteka Imeni Lenina-Borovitskaya (3), Tverskaya-Pushkinskaya (3), Pushkinskaya-Chekhovskaya (3), Novokuznetskaya-Tretyakovskaya (3), Kurskaya-Chkalovskaya (4), Taganskaya-Marksistskaya (3), Dobryninskaya-Serpukhovskaya (3), Novoslobodskaya-Mendeleyevskaya (3), Tsvetnoy Bulvar-Trubnaya (3), Proletarskaya-Krestyanskaya Zastava (3), Ploshchad Ilyicha-Rimskaya (3), Dinamo-Petrovsky Park (3), Polezhayevskaya-Khoroshyovskaya (3), Kashirskaya-Varshavskaya (2), Sevastopolskaya-Kakhovskaya (2), Kaluzhskaya-Vorontsovskaya (3), Novoyasenevskaya-Bittsevsky Park (4), Bulvar Dmitriya Donskogo-Ulitsa Starokachalovskaya (3), Zyablikovo-Krasnogvardeyskaya (3), Lermontovsky Prospekt-Kosino (3)
+
